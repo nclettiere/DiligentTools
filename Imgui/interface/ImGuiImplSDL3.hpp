@@ -44,7 +44,7 @@ public:
     ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
     ~ImGuiImplSDL3();
 
-	void ProcessEvent(SDL_Event* event);
+	static void ProcessEvent(SDL_Event* event);
 
     // clang-format off
     ImGuiImplSDL3             (const ImGuiImplSDL3&)  = delete;

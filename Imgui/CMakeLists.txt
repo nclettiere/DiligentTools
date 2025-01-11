@@ -83,6 +83,7 @@ else()
         ${DILIGENT_DEAR_IMGUI_PATH}/imgui_draw.cpp
         ${DILIGENT_DEAR_IMGUI_PATH}/imgui_tables.cpp
         ${DILIGENT_DEAR_IMGUI_PATH}/imgui_widgets.cpp
+        ${DILIGENT_DEAR_IMGUI_PATH}/imgui_demo.cpp
         ${DILIGENT_DEAR_IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
     )
 
