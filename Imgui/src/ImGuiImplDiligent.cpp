@@ -54,7 +54,7 @@ ImGuiDiligentCreateInfo::ImGuiDiligentCreateInfo(IRenderDevice*       _pDevice,
 
 ImGuiImplDiligent::ImGuiImplDiligent(const ImGuiDiligentCreateInfo& CI)
 {
-    ImGui::CreateContext();
+    m_pPrimaryImGuiCtx = ImGui::CreateContext();
     ImGuiIO& io    = ImGui::GetIO();
     io.IniFilename = nullptr;
 

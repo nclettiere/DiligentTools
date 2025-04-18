@@ -27,14 +27,18 @@
 
 #include <SDL3/SDL.h>
 
+#include "RenderDevice.h"
 #include "GraphicsTypes.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "ImGuiImplSDL3.hpp"
 #include "backends/imgui_impl_sdl3.h"
 #include "DebugUtilities.hpp"
 
 namespace Diligent
 {
+
+bool ImGuiImplSDL3::backend_initialized = false;
 
 std::unique_ptr<ImGuiImplSDL3> ImGuiImplSDL3::Create(const ImGuiDiligentCreateInfo& CI, SDL_Window* window)
 {
@@ -44,12 +48,48 @@ std::unique_ptr<ImGuiImplSDL3> ImGuiImplSDL3::Create(const ImGuiDiligentCreateIn
 ImGuiImplSDL3::ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window) :
     ImGuiImplDiligent{CI}
 {
-    ImGui_ImplSDL3_InitForOther(window);
+    // ImGui_ImplSDL3_XXX can only be initialized once
+    // We need to check for this flag for multiple window support
+    assert(!backend_initialized && "ImGui_ImplSDL3 already initialized");
+
+    if (!backend_initialized)
+    {
+        switch (CI.pDevice->GetDeviceInfo().Type)
+        {
+            case RENDER_DEVICE_TYPE_UNDEFINED:
+                LOG_ERROR_AND_THROW("Undefined device type");
+                break;
+            case RENDER_DEVICE_TYPE_D3D11:
+            case RENDER_DEVICE_TYPE_D3D12:
+                ImGui_ImplSDL3_InitForD3D(window);
+                backend_initialized = true;
+                break;
+            case RENDER_DEVICE_TYPE_GL:
+            case RENDER_DEVICE_TYPE_GLES:
+                ImGui_ImplSDL3_InitForOpenGL(window, nullptr);
+                backend_initialized = true;
+                break;
+            case RENDER_DEVICE_TYPE_VULKAN:
+                ImGui_ImplSDL3_InitForVulkan(window);
+                backend_initialized = true;
+                break;
+            case RENDER_DEVICE_TYPE_METAL:
+                ImGui_ImplSDL3_InitForMetal(window);
+                backend_initialized = true;
+                break;
+            case RENDER_DEVICE_TYPE_WEBGPU:
+                LOG_ERROR_AND_THROW("WebGPU not supported");
+                break;
+            case RENDER_DEVICE_TYPE_COUNT:
+                LOG_ERROR_AND_THROW("Unsupported device type");
+                break;
+        }
+    }
 }
 
 ImGuiImplSDL3::~ImGuiImplSDL3()
 {
-	ImGui_ImplSDL3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
 }
 
 void ImGuiImplSDL3::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform)
@@ -70,11 +110,38 @@ void ImGuiImplSDL3::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeig
 #endif
 }
 
-void ImGuiImplSDL3::ProcessEvent(SDL_Event* event)
+void ImGuiImplSDL3::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform, ImGuiContext* imgui_ctx)
 {
-	if (event == nullptr)
-		return;
+    VERIFY(SurfacePreTransform == SURFACE_TRANSFORM_IDENTITY, "Unexpected surface pre-transform");
 
+    if (imgui_ctx != nullptr)
+    {
+        ImGui::SetCurrentContext(imgui_ctx);
+    }
+
+    ImGui_ImplSDL3_NewFrame();
+    ImGuiImplDiligent::NewFrame(RenderSurfaceWidth, RenderSurfaceHeight, SurfacePreTransform);
+
+#ifdef DILIGENT_DEBUG
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        VERIFY(io.DisplaySize.x == 0 || io.DisplaySize.x == static_cast<float>(RenderSurfaceWidth),
+               "Render surface width (", RenderSurfaceWidth, ") does not match io.DisplaySize.x (", io.DisplaySize.x, ")");
+        VERIFY(io.DisplaySize.y == 0 || io.DisplaySize.y == static_cast<float>(RenderSurfaceHeight),
+               "Render surface height (", RenderSurfaceHeight, ") does not match io.DisplaySize.y (", io.DisplaySize.y, ")");
+    }
+#endif
+}
+
+void ImGuiImplSDL3::ProcessEvent(SDL_Event* event, ImGuiContext* imgui_ctx)
+{
+    if (event == nullptr)
+        return;
+
+    if (imgui_ctx != nullptr)
+    {
+        ImGui::SetCurrentContext(imgui_ctx);
+    }
     ImGui_ImplSDL3_ProcessEvent(event);
 }
 

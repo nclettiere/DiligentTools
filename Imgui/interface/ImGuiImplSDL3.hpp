@@ -32,19 +32,23 @@
 
 struct SDL_Window;
 union SDL_Event;
+struct ImGuiContext;
 
 namespace Diligent
 {
 
 class ImGuiImplSDL3 final : public ImGuiImplDiligent
 {
+private:
+    static bool backend_initialized;
+
 public:
     static std::unique_ptr<ImGuiImplSDL3> Create(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
 
     ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
     ~ImGuiImplSDL3();
 
-	static void ProcessEvent(SDL_Event* event);
+    static void ProcessEvent(SDL_Event* event, ImGuiContext* imgui_ctx);
 
     // clang-format off
     ImGuiImplSDL3             (const ImGuiImplSDL3&)  = delete;
@@ -54,6 +58,7 @@ public:
     // clang-format on
 
     virtual void NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform) override final;
+    void         NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform, ImGuiContext* imgui_ctx);
 };
 
 } // namespace Diligent

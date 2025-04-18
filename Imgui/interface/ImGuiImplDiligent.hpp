@@ -30,6 +30,8 @@
 #include <memory>
 #include "../../../DiligentCore/Primitives/interface/BasicTypes.h"
 
+struct ImGuiContext;
+
 namespace Diligent
 {
 
@@ -118,8 +120,15 @@ public:
 
     void UpdateFontsTexture();
 
+    ImGuiContext* GetPrimaryImGuiContext() const
+    {
+        return m_pPrimaryImGuiCtx;
+    }
+
 protected:
     std::unique_ptr<ImGuiDiligentRenderer> m_pRenderer;
+
+    ImGuiContext* m_pPrimaryImGuiCtx = nullptr;
 };
 
 } // namespace Diligent
