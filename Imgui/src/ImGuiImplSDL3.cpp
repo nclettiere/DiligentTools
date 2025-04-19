@@ -40,27 +40,19 @@ namespace Diligent
 
 bool ImGuiImplSDL3::backend_initialized = false;
 
-std::unique_ptr<ImGuiImplSDL3> ImGuiImplSDL3::Create(const ImGuiDiligentCreateInfo& CI, bool secondaryWindow)
+std::unique_ptr<ImGuiImplSDL3> ImGuiImplSDL3::Create(const ImGuiDiligentCreateInfo& CI, SDL_Window* window)
 {
-    return std::make_unique<ImGuiImplSDL3>(CI, secondaryWindow);
+    return std::make_unique<ImGuiImplSDL3>(CI, window);
 }
 
-ImGuiImplSDL3::ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, bool secondaryWindow) :
-    ImGuiImplDiligent{CI, secondaryWindow}
+ImGuiImplSDL3::ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window) :
+    ImGuiImplDiligent{CI}
 {
-}
-
-ImGuiImplSDL3::~ImGuiImplSDL3()
-{
-}
-
-void ImGuiImplSDL3::Init(SDL_Window* window, RENDER_DEVICE_TYPE device_type)
-{
-    // ImGui_ImplSDL3_XXX can only be initialized once.
+    // ImGui_ImplSDL3_XXX can only be initialized once
     // We need to check for this flag for multiple window support
     if (!backend_initialized)
     {
-        switch (device_type)
+        switch (CI.pDevice->GetDeviceInfo().Type)
         {
             case RENDER_DEVICE_TYPE_UNDEFINED:
                 LOG_ERROR_AND_THROW("Undefined device type");
@@ -86,11 +78,15 @@ void ImGuiImplSDL3::Init(SDL_Window* window, RENDER_DEVICE_TYPE device_type)
             case RENDER_DEVICE_TYPE_WEBGPU:
                 LOG_ERROR_AND_THROW("WebGPU not supported");
                 break;
-            default:
+            case RENDER_DEVICE_TYPE_COUNT:
                 LOG_ERROR_AND_THROW("Unsupported device type");
                 break;
         }
     }
+}
+
+ImGuiImplSDL3::~ImGuiImplSDL3()
+{
 }
 
 void ImGuiImplSDL3::Shutdown()
@@ -104,6 +100,7 @@ void ImGuiImplSDL3::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeig
 {
     VERIFY(SurfacePreTransform == SURFACE_TRANSFORM_IDENTITY, "Unexpected surface pre-transform");
 
+    ImGui::SetCurrentContext(m_pImGuiCtx);
     ImGui_ImplSDL3_NewFrame();
     ImGuiImplDiligent::NewFrame(RenderSurfaceWidth, RenderSurfaceHeight, SurfacePreTransform);
 
@@ -118,16 +115,15 @@ void ImGuiImplSDL3::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeig
 #endif
 }
 
-void ImGuiImplSDL3::ProcessEvent(SDL_Event* event, ImGuiContext* imgui_ctx)
+void ImGuiImplSDL3::ProcessEvents(void* event)
 {
     if (event == nullptr)
         return;
 
-    if (imgui_ctx != nullptr)
-    {
-        ImGui::SetCurrentContext(imgui_ctx);
-    }
-    ImGui_ImplSDL3_ProcessEvent(event);
+    SDL_Event* sdl_event = static_cast<SDL_Event*>(event);
+
+    ImGui::SetCurrentContext(m_pImGuiCtx);
+    ImGui_ImplSDL3_ProcessEvent(sdl_event);
 }
 
 } // namespace Diligent
