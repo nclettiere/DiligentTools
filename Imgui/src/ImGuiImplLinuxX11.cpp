@@ -25,6 +25,8 @@
  *  of the possibility of such damages.
  */
 
+/*
+
 #include "ImGuiImplLinuxX11.hpp"
 
 #include <X11/Xlib.h>
@@ -209,3 +211,5 @@ bool ImGuiImplLinuxX11::HandleXEvent(XEvent* event)
 }
 
 } // namespace Diligent
+
+*/

@@ -25,6 +25,7 @@
  *  of the possibility of such damages.
  */
 
+/*
 #include "ImGuiImplLinuxXCB.hpp"
 
 #include "imgui.h"
@@ -152,14 +153,14 @@ void ImGuiImplLinuxXCB::HandleKeyEvent(xcb_key_release_event_t* event)
         {
 #if 0
             case XK_Control_L:
-            case XK_Control_R: /*s_KMod |= TW_KMOD_CTRL;*/  break;
+            case XK_Control_R: /*s_KMod |= TW_KMOD_CTRL;*/  //break;
 
-            case XK_Shift_L:
-            case XK_Shift_R:   /*s_KMod |= TW_KMOD_SHIFT;*/ break;
+            //case XK_Shift_L:
+            //case XK_Shift_R:   /*s_KMod |= TW_KMOD_SHIFT;*/ break;
 
-            case XK_Alt_L:
-            case XK_Alt_R:     /*s_KMod |= TW_KMOD_ALT;*/   break;
-
+            //case XK_Alt_L:
+            //case XK_Alt_R:     /*s_KMod |= TW_KMOD_ALT;*/   break;
+/*
 #    ifdef XK_Enter
             case XK_Enter:     k = TW_KEY_RETURN;    break;
 #    endif
@@ -302,3 +303,4 @@ bool ImGuiImplLinuxXCB::HandleXCBEvent(xcb_generic_event_t* event)
 }
 
 } // namespace Diligent
+*/

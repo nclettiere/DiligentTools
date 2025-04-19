@@ -88,7 +88,7 @@ struct ImGuiDiligentCreateInfo
 class ImGuiImplDiligent
 {
 public:
-    ImGuiImplDiligent(const ImGuiDiligentCreateInfo& CI);
+    ImGuiImplDiligent(const ImGuiDiligentCreateInfo& CI, bool secondaryWindow = false);
     virtual ~ImGuiImplDiligent();
 
     // clang-format off
@@ -120,15 +120,15 @@ public:
 
     void UpdateFontsTexture();
 
-    ImGuiContext* GetPrimaryImGuiContext() const
+    ImGuiContext* GetImGuiContext() const
     {
-        return m_pPrimaryImGuiCtx;
+        return m_pImGuiCtx;
     }
 
 protected:
     std::unique_ptr<ImGuiDiligentRenderer> m_pRenderer;
 
-    ImGuiContext* m_pPrimaryImGuiCtx = nullptr;
+    ImGuiContext* m_pImGuiCtx = nullptr;
 };
 
 } // namespace Diligent

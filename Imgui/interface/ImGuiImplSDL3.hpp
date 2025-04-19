@@ -43,10 +43,13 @@ private:
     static bool backend_initialized;
 
 public:
-    static std::unique_ptr<ImGuiImplSDL3> Create(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
+    static std::unique_ptr<ImGuiImplSDL3> Create(const ImGuiDiligentCreateInfo& CI, bool secondaryWindow = false);
 
-    ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
+    ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, bool secondaryWindow = false);
     ~ImGuiImplSDL3();
+
+    static void Init(SDL_Window* window, RENDER_DEVICE_TYPE device_type);
+    static void Shutdown();
 
     static void ProcessEvent(SDL_Event* event, ImGuiContext* imgui_ctx);
 
@@ -58,7 +61,6 @@ public:
     // clang-format on
 
     virtual void NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform) override final;
-    void         NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform, ImGuiContext* imgui_ctx);
 };
 
 } // namespace Diligent
