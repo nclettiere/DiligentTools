@@ -38,8 +38,6 @@
 namespace Diligent
 {
 
-bool ImGuiImplSDL3::backend_initialized = false;
-
 std::unique_ptr<ImGuiImplSDL3> ImGuiImplSDL3::Create(const ImGuiDiligentCreateInfo& CI, SDL_Window* window)
 {
     return std::make_unique<ImGuiImplSDL3>(CI, window);
@@ -48,81 +46,67 @@ std::unique_ptr<ImGuiImplSDL3> ImGuiImplSDL3::Create(const ImGuiDiligentCreateIn
 ImGuiImplSDL3::ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window) :
     ImGuiImplDiligent{CI}
 {
-    // ImGui_ImplSDL3_XXX can only be initialized once
-    // We need to check for this flag for multiple window support
-    if (!backend_initialized)
+    switch (CI.pDevice->GetDeviceInfo().Type)
     {
-        switch (CI.pDevice->GetDeviceInfo().Type)
-        {
-            case RENDER_DEVICE_TYPE_UNDEFINED:
-                LOG_ERROR_AND_THROW("Undefined device type");
-                break;
-            case RENDER_DEVICE_TYPE_D3D11:
-            case RENDER_DEVICE_TYPE_D3D12:
-                ImGui_ImplSDL3_InitForD3D(window);
-                backend_initialized = true;
-                break;
-            case RENDER_DEVICE_TYPE_GL:
-            case RENDER_DEVICE_TYPE_GLES:
-                ImGui_ImplSDL3_InitForOpenGL(window, nullptr);
-                backend_initialized = true;
-                break;
-            case RENDER_DEVICE_TYPE_VULKAN:
-                ImGui_ImplSDL3_InitForVulkan(window);
-                backend_initialized = true;
-                break;
-            case RENDER_DEVICE_TYPE_METAL:
-                ImGui_ImplSDL3_InitForMetal(window);
-                backend_initialized = true;
-                break;
-            case RENDER_DEVICE_TYPE_WEBGPU:
-                LOG_ERROR_AND_THROW("WebGPU not supported");
-                break;
-            case RENDER_DEVICE_TYPE_COUNT:
-                LOG_ERROR_AND_THROW("Unsupported device type");
-                break;
-        }
+        case RENDER_DEVICE_TYPE_UNDEFINED:
+            LOG_ERROR_AND_THROW("Undefined device type");
+            break;
+        case RENDER_DEVICE_TYPE_D3D11:
+        case RENDER_DEVICE_TYPE_D3D12:
+            ImGui_ImplSDL3_InitForD3D(window);
+            break;
+        case RENDER_DEVICE_TYPE_GL:
+        case RENDER_DEVICE_TYPE_GLES:
+            ImGui_ImplSDL3_InitForOpenGL(window, nullptr);
+            break;
+        case RENDER_DEVICE_TYPE_VULKAN:
+            ImGui_ImplSDL3_InitForVulkan(window);
+            break;
+        case RENDER_DEVICE_TYPE_METAL:
+            ImGui_ImplSDL3_InitForMetal(window);
+            break;
+        case RENDER_DEVICE_TYPE_WEBGPU:
+            LOG_ERROR_AND_THROW("WebGPU not supported");
+            break;
+        case RENDER_DEVICE_TYPE_COUNT:
+            LOG_ERROR_AND_THROW("Unsupported device type");
+            break;
     }
 }
 
 ImGuiImplSDL3::~ImGuiImplSDL3()
 {
-}
-
-void ImGuiImplSDL3::Shutdown()
-{
+    ImGui::SetCurrentContext(GetImGuiContext());
     ImGui_ImplSDL3_Shutdown();
-    // ImGui_ImplSDL3_CloseGamepads();
-    backend_initialized = false;
 }
 
 void ImGuiImplSDL3::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform)
 {
     VERIFY(SurfacePreTransform == SURFACE_TRANSFORM_IDENTITY, "Unexpected surface pre-transform");
 
-    ImGui::SetCurrentContext(m_pImGuiCtx);
+    ImGui::SetCurrentContext(GetImGuiContext());
+
     ImGui_ImplSDL3_NewFrame();
     ImGuiImplDiligent::NewFrame(RenderSurfaceWidth, RenderSurfaceHeight, SurfacePreTransform);
 
-#ifdef DILIGENT_DEBUG
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        VERIFY(io.DisplaySize.x == 0 || io.DisplaySize.x == static_cast<float>(RenderSurfaceWidth),
-               "Render surface width (", RenderSurfaceWidth, ") does not match io.DisplaySize.x (", io.DisplaySize.x, ")");
-        VERIFY(io.DisplaySize.y == 0 || io.DisplaySize.y == static_cast<float>(RenderSurfaceHeight),
-               "Render surface height (", RenderSurfaceHeight, ") does not match io.DisplaySize.y (", io.DisplaySize.y, ")");
-    }
-#endif
+    #ifdef DILIGENT_DEBUG
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            VERIFY(io.DisplaySize.x == 0 || io.DisplaySize.x == static_cast<float>(RenderSurfaceWidth),
+                   "Render surface width (", RenderSurfaceWidth, ") does not match io.DisplaySize.x (", io.DisplaySize.x, ")");
+            VERIFY(io.DisplaySize.y == 0 || io.DisplaySize.y == static_cast<float>(RenderSurfaceHeight),
+                   "Render surface height (", RenderSurfaceHeight, ") does not match io.DisplaySize.y (", io.DisplaySize.y, ")");
+        }
+    #endif
 }
 
-void ImGuiImplSDL3::ProcessEvents(void* event)
+void ImGuiImplSDL3::ProcessEvents(const void* event)
 {
     if (event == nullptr)
         return;
 
-    SDL_Event* sdl_event = static_cast<SDL_Event*>(event);
-
-    ImGui::SetCurrentContext(m_pImGuiCtx);
+    const SDL_Event* sdl_event = static_cast<const SDL_Event*>(event);
+    ImGui::SetCurrentContext(GetImGuiContext());
     ImGui_ImplSDL3_ProcessEvent(sdl_event);
 }
 

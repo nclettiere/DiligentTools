@@ -39,8 +39,6 @@ namespace Diligent
 
 class ImGuiImplSDL3 final : public ImGuiImplDiligent
 {
-private:
-    static bool backend_initialized;
 
 public:
     static std::unique_ptr<ImGuiImplSDL3> Create(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
@@ -48,9 +46,7 @@ public:
     ImGuiImplSDL3(const ImGuiDiligentCreateInfo& CI, SDL_Window* window);
     ~ImGuiImplSDL3();
 
-    static void Shutdown();
-
-    void ProcessEvents(void* event);
+    void ProcessEvents(const void* event);
 
     // clang-format off
     ImGuiImplSDL3             (const ImGuiImplSDL3&)  = delete;

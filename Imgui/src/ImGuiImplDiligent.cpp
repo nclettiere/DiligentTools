@@ -54,13 +54,13 @@ ImGuiDiligentCreateInfo::ImGuiDiligentCreateInfo(IRenderDevice*       _pDevice,
 
 ImGuiImplDiligent::ImGuiImplDiligent(const ImGuiDiligentCreateInfo& CI, bool secondaryWindow)
 {
-    m_pImGuiCtx    = ImGui::CreateContext();
-    
-    //if (secondaryWindow)
-    ImGui::SetCurrentContext(m_pImGuiCtx);
+    m_pImGuiCtx = ImGui::CreateContext();
 
+    //if (secondaryWindow)
     ImGuiIO& io    = ImGui::GetIO();
     io.IniFilename = nullptr;
+
+    ImGui::SetCurrentContext(m_pImGuiCtx);
 
     m_pRenderer = std::make_unique<ImGuiDiligentRenderer>(CI);
 }
@@ -73,6 +73,11 @@ ImGuiImplDiligent::~ImGuiImplDiligent()
 void ImGuiImplDiligent::NewFrame(Uint32 RenderSurfaceWidth, Uint32 RenderSurfaceHeight, SURFACE_TRANSFORM SurfacePreTransform)
 {
     ImGui::SetCurrentContext(m_pImGuiCtx);
+
+    //ImGuiIO& io = ImGui::GetIO();
+    //io.DisplaySize.x = static_cast<float>(RenderSurfaceWidth);
+    //io.DisplaySize.y = static_cast<float>(RenderSurfaceHeight);
+
     m_pRenderer->NewFrame(RenderSurfaceWidth, RenderSurfaceHeight, SurfacePreTransform);
     ImGui::NewFrame();
 }
@@ -85,7 +90,7 @@ void ImGuiImplDiligent::EndFrame()
 void ImGuiImplDiligent::Render(IDeviceContext* pCtx)
 {
     // No need to call ImGui::EndFrame as ImGui::Render calls it automatically
-    ImGui::SetCurrentContext(m_pImGuiCtx);
+    //ImGui::SetCurrentContext(m_pImGuiCtx);
     ImGui::Render();
     m_pRenderer->RenderDrawData(pCtx, ImGui::GetDrawData());
 }
